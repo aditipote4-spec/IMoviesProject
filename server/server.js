@@ -1,6 +1,8 @@
 const express = require('express');
 const cors = require('cors');
 const dotenv = require('dotenv');
+const path = require('path');
+const fs = require('fs');
 const { connectDB, getDBStatus } = require('./config/db');
 
 // Load environment variables from .env
@@ -33,28 +35,47 @@ app.get('/api/health', (req, res) => {
 app.use('/api/movies', movieRoutes);
 app.use('/api/bookings', bookingRoutes);
 
-// Root route
-app.get('/', (req, res) => {
-  res.json({
-    message: '🎬 Welcome to iMovies Backend API',
-    endpoints: {
-      health: '/api/health',
-      movies: '/api/movies',
-      movieDetails: '/api/movies/:id',
-      genres: '/api/movies/meta/genres',
-      cities: '/api/movies/meta/cities',
-      bookings: '/api/bookings'
+// Static client build serving for production
+const clientDistPath = path.join(__dirname, '../client/dist');
+if (fs.existsSync(clientDistPath)) {
+  console.log(`📦 Serving production frontend build from: ${clientDistPath}`);
+  app.use(express.static(clientDistPath));
+
+  // SPA fallback: any non-API route serves the frontend index.html
+  app.get('*', (req, res) => {
+    if (!req.path.startsWith('/api')) {
+      res.sendFile(path.join(clientDistPath, 'index.html'));
+    } else {
+      res.status(404).json({
+        success: false,
+        message: `API route not found: ${req.originalUrl}`
+      });
     }
   });
-});
-
-// 404 Not Found Handler
-app.use((req, res) => {
-  res.status(404).json({
-    success: false,
-    message: `API route not found: ${req.originalUrl}`
+} else {
+  // Fallback root route if client/dist is not built
+  app.get('/', (req, res) => {
+    res.json({
+      message: '🎬 Welcome to iMovies Backend API',
+      endpoints: {
+        health: '/api/health',
+        movies: '/api/movies',
+        movieDetails: '/api/movies/:id',
+        genres: '/api/movies/meta/genres',
+        cities: '/api/movies/meta/cities',
+        bookings: '/api/bookings'
+      }
+    });
   });
-});
+
+  // 404 Not Found Handler for API
+  app.use((req, res) => {
+    res.status(404).json({
+      success: false,
+      message: `API route not found: ${req.originalUrl}`
+    });
+  });
+}
 
 // Global Error Handler
 app.use((err, req, res, next) => {
