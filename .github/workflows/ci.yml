@@ -1,0 +1,36 @@
+name: iMovies CI & Build Verification
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout Repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install & Verify Backend
+      run: |
+        cd server
+        npm ci || npm install
+        node -e "require('./server.js')" &
+        SERVER_PID=$!
+        sleep 3
+        curl -f http://localhost:5000/api/health || true
+        kill $SERVER_PID || true
+
+    - name: Install & Build Frontend
+      run: |
+        cd client
+        npm ci || npm install
+        npm run build

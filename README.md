@@ -154,59 +154,66 @@ node -v
 
 ## ☁️ Cloud Deployment Guide
 
-This project is optimized for modern cloud hosting with zero cold-start bugs.
+[![GitHub Repository](https://img.shields.io/badge/GitHub-IMoviesProject-181717?style=for-the-badge&logo=github)](https://github.com/aditipote4-spec/IMoviesProject)
+[![Deploy to Render](https://render.com/images/deploy-to-render-button.svg)](https://render.com/deploy?repo=https://github.com/aditipote4-spec/IMoviesProject)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/aditipote4-spec/IMoviesProject&root-directory=client)
 
-### Phase 1: Push Code to GitHub
-1. Create a new repository on GitHub:
-   - Go to [github.com/new](https://github.com/new)
-   - Repository name: `IMoviesProject`
-   - Select **Public**
-   - Leave "Add a README file" **unchecked** (we already have a complete README)
-   - Click **Create repository**
-2. In your terminal, link and push the repository:
-   ```bash
-   git remote add origin https://github.com/<YOUR_GITHUB_USERNAME>/IMoviesProject.git
-   git push -u origin main
-   ```
+### Repository URL
+- **Public GitHub Repo**: [https://github.com/aditipote4-spec/IMoviesProject](https://github.com/aditipote4-spec/IMoviesProject)
 
 ---
 
-### Phase 2: Deploy Backend to Render (Free)
-1. Go to [render.com](https://render.com) and sign in with GitHub.
-2. Click **New +** -> **Web Service**.
-3. Select your `IMoviesProject` repository.
-4. Configure the settings:
-   - **Name**: `imovies-backend`
-   - **Region**: Closest to you (e.g., Singapore / Frankfurt / Oregon)
-   - **Root Directory**: `server`
-   - **Runtime**: `Node`
-   - **Build Command**: `npm install`
-   - **Start Command**: `node server.js`
-   - **Instance Type**: `Free`
-5. Under **Environment Variables**, add:
-   - `PORT`: `5000`
-   - `NODE_ENV`: `production`
-   - `MONGODB_URI`: *(Your MongoDB Atlas connection string, or leave empty for Demo Mode)*
-6. Click **Deploy Web Service**.
-7. Once deployed, copy your Render service URL (e.g., `https://imovies-backend.onrender.com`).
-   - Test it by visiting `https://imovies-backend.onrender.com/api/health`.
+### Option 1: 1-Click Full-Stack Deployment via Render Blueprint
+Because this repository contains a root `render.yaml` Blueprint, Render can automatically deploy **both** the backend and the frontend together:
+1. Open [https://dashboard.render.com/blueprints/new](https://dashboard.render.com/blueprints/new) and log in with GitHub.
+2. Select repository: `aditipote4-spec/IMoviesProject`.
+3. Render reads `render.yaml` and sets up:
+   - `imovies-backend` (Node Web Service in `server/`)
+   - `imovies-frontend` (Static Web App in `client/dist`)
+4. Click **Apply**.
+5. Once complete, Render provides your live frontend and backend URLs!
 
 ---
 
-### Phase 3: Deploy Frontend to Vercel (Free)
-1. Go to [vercel.com](https://vercel.com) and log in with GitHub.
-2. Click **Add New...** -> **Project**.
-3. Import your `IMoviesProject` repository.
-4. Configure the project:
-   - **Framework Preset**: `Vite`
-   - **Root Directory**: Click `Edit` and select `client`
-   - **Build Command**: `npm run build`
-   - **Output Directory**: `dist`
-5. Expand **Environment Variables** and add:
-   - **Key**: `VITE_API_BASE_URL`
-   - **Value**: `https://imovies-backend.onrender.com/api` *(Your Render backend URL from Phase 2)*
-6. Click **Deploy**.
-7. In ~1 minute, Vercel will give you a live production link (e.g., `https://imovies-project.vercel.app`).
+### Option 2: Frontend on Vercel + Backend on Render
+1. **Backend on Render**:
+   - Go to [render.com](https://render.com) -> **New +** -> **Web Service**.
+   - Connect `aditipote4-spec/IMoviesProject`.
+   - Root directory: `server`
+   - Build: `npm install`, Start: `node server.js`
+   - Add env vars: `PORT=5000`, `NODE_ENV=production`
+   - Copy the generated backend URL (e.g. `https://imovies-backend-xxxx.onrender.com`).
+2. **Frontend on Vercel**:
+   - Go to [vercel.com](https://vercel.com) -> **Add New Project**.
+   - Import `aditipote4-spec/IMoviesProject`.
+   - Root directory: `client`
+   - Framework preset: `Vite`
+   - Environment Variable:
+     - `VITE_API_BASE_URL` = `https://imovies-backend-xxxx.onrender.com/api`
+   - Click **Deploy**.
+
+---
+
+### 🔑 Securely Configuring MongoDB Atlas
+
+If you wish to switch from the built-in **Demo In-Memory Mode** to a live **MongoDB Atlas Cluster**:
+
+1. **Get Connection String from MongoDB Atlas**:
+   - Log into [cloud.mongodb.com](https://cloud.mongodb.com).
+   - In your cluster, click **Connect** $\rightarrow$ **Drivers** (Node.js).
+   - Copy the connection string format:
+     `mongodb+srv://<db_username>:<db_password>@cluster0.abcde.mongodb.net/imovies?retryWrites=true&w=majority`
+2. **Fixing Common Atlas Authentication Issues**:
+   - **Database User**: Go to **Database Access** in Atlas. Ensure your user has `readWriteAnyDatabase` or `readWrite@imovies` permissions.
+   - **Password Encoding**: If your password has special symbols (e.g., `@`, `:`, `#`, `%`), URL-encode them (e.g., `@` becomes `%40`), or use an alphanumeric password.
+   - **Network Access (IP Whitelist)**: Go to **Network Access** in Atlas and ensure `0.0.0.0/0` (Allow Access from Anywhere) is active so cloud providers (Render/Vercel) and college networks can reach the database.
+3. **Applying the URI**:
+   - For **Local testing**: Add `MONGODB_URI="your_encoded_uri"` inside `server/.env` and restart the server.
+   - For **Production on Render**: Go to your Render Web Service $\rightarrow$ **Environment** $\rightarrow$ Add `MONGODB_URI` with your connection string.
+   - *Never commit `server/.env` to GitHub!*
+4. **Verification**:
+   - When connected, the `/api/health` endpoint responds with `"isMongoAtlasConnected": true`, and the UI pill turns green (`● Atlas`).
+   - If left blank or invalid, the app safely defaults to **Demo In-Memory Mode** so your college presentation never crashes!
 
 ---
 
