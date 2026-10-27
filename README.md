@@ -152,6 +152,64 @@ node -v
 
 ---
 
+## ☁️ Cloud Deployment Guide
+
+This project is optimized for modern cloud hosting with zero cold-start bugs.
+
+### Phase 1: Push Code to GitHub
+1. Create a new repository on GitHub:
+   - Go to [github.com/new](https://github.com/new)
+   - Repository name: `IMoviesProject`
+   - Select **Public**
+   - Leave "Add a README file" **unchecked** (we already have a complete README)
+   - Click **Create repository**
+2. In your terminal, link and push the repository:
+   ```bash
+   git remote add origin https://github.com/<YOUR_GITHUB_USERNAME>/IMoviesProject.git
+   git push -u origin main
+   ```
+
+---
+
+### Phase 2: Deploy Backend to Render (Free)
+1. Go to [render.com](https://render.com) and sign in with GitHub.
+2. Click **New +** -> **Web Service**.
+3. Select your `IMoviesProject` repository.
+4. Configure the settings:
+   - **Name**: `imovies-backend`
+   - **Region**: Closest to you (e.g., Singapore / Frankfurt / Oregon)
+   - **Root Directory**: `server`
+   - **Runtime**: `Node`
+   - **Build Command**: `npm install`
+   - **Start Command**: `node server.js`
+   - **Instance Type**: `Free`
+5. Under **Environment Variables**, add:
+   - `PORT`: `5000`
+   - `NODE_ENV`: `production`
+   - `MONGODB_URI`: *(Your MongoDB Atlas connection string, or leave empty for Demo Mode)*
+6. Click **Deploy Web Service**.
+7. Once deployed, copy your Render service URL (e.g., `https://imovies-backend.onrender.com`).
+   - Test it by visiting `https://imovies-backend.onrender.com/api/health`.
+
+---
+
+### Phase 3: Deploy Frontend to Vercel (Free)
+1. Go to [vercel.com](https://vercel.com) and log in with GitHub.
+2. Click **Add New...** -> **Project**.
+3. Import your `IMoviesProject` repository.
+4. Configure the project:
+   - **Framework Preset**: `Vite`
+   - **Root Directory**: Click `Edit` and select `client`
+   - **Build Command**: `npm run build`
+   - **Output Directory**: `dist`
+5. Expand **Environment Variables** and add:
+   - **Key**: `VITE_API_BASE_URL`
+   - **Value**: `https://imovies-backend.onrender.com/api` *(Your Render backend URL from Phase 2)*
+6. Click **Deploy**.
+7. In ~1 minute, Vercel will give you a live production link (e.g., `https://imovies-project.vercel.app`).
+
+---
+
 ## 📡 REST API Documentation
 
 Base URL: `http://localhost:5000/api`
